@@ -1,0 +1,122 @@
+{
+    "GAMES_FOLDER": "games",
+    "players": [
+        {
+            "name": "p1",
+            "deck": [
+                "c42",
+                "c76",
+                "c10",
+                "c21"
+            ],
+            "game_id": "7DnkUwbGH7GwNgogDFux2k_20241216T225245",
+            "id": 1,
+            "hand": [
+                "c38",
+                "c55",
+                "c81"
+            ],
+            "reserve": [],
+            "landmarks": [],
+            "exp_hero": [],
+            "exp_companion": [],
+            "mana_pile": [
+                "c12",
+                "c14",
+                "c98"
+            ],
+            "discard_pile": [],
+            "has_passed_afternoon": false,
+            "turn_not_ended": false,
+            "effects_available": null,
+            "pending_effects": null,
+            "actions": [
+                {
+                    "action": "move_card",
+                    "card": "c12",
+                    "from": "hand",
+                    "to": "mana_pile"
+                },
+                {
+                    "action": "move_card",
+                    "card": "c14",
+                    "from": "hand",
+                    "to": "mana_pile"
+                },
+                {
+                    "action": "move_card",
+                    "card": "c98",
+                    "from": "hand",
+                    "to": "mana_pile"
+                }
+            ],
+            "message": "Discard 3 cards to mana and/or wait for other players to do so",
+            "available_actions": null,
+            "server": "http://127.0.0.1:8000",
+            "is_AI": true,
+            "AI_level": "random"
+        },
+        {
+            "name": "p2",
+            "deck": [
+                "c41",
+                "c33",
+                "c78",
+                "c08"
+            ],
+            "game_id": "7DnkUwbGH7GwNgogDFux2k_20241216T225245",
+            "id": 2,
+            "hand": [
+                "c83",
+                "c39",
+                "c16"
+            ],
+            "reserve": [],
+            "landmarks": [],
+            "exp_hero": [],
+            "exp_companion": [],
+            "mana_pile": [
+                "c15",
+                "c30",
+                "c46"
+            ],
+            "discard_pile": [],
+            "has_passed_afternoon": false,
+            "turn_not_ended": false,
+            "effects_available": null,
+            "pending_effects": null,
+            "actions": [
+                {
+                    "action": "move_card",
+                    "card": "c15",
+                    "from": "hand",
+                    "to": "mana_pile"
+                },
+                {
+                    "action": "move_card",
+                    "card": "c30",
+                    "from": "hand",
+                    "to": "mana_pile"
+                },
+                {
+                    "action": "move_card",
+                    "card": "c46",
+                    "from": "hand",
+                    "to": "mana_pile"
+                }
+            ],
+            "message": "Discard 3 cards to mana and/or wait for other players to do so",
+            "available_actions": null,
+            "server": "http://127.0.0.1:8000",
+            "is_AI": true,
+            "AI_level": "random"
+        }
+    ],
+    "n_players": 2,
+    "first_player": 0,
+    "day": null,
+    "day_phase": null,
+    "winner": null,
+    "days_history": null,
+    "id": "7DnkUwbGH7GwNgogDFux2k_20241216T225245"
+}

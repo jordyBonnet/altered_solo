@@ -9,22 +9,53 @@ import shortuuid
 import time
 
 class Altered_game_engine(StateMachine):
-    """ State machine Altered game engine """
+    """ State machine Altered game engine 
+        Game rules:
+
+        Phase 1 - Morning:
+            change the owner of the first player marker
+            ready your mana orbs and exhausted cards
+            draw 2 cards from your deck
+            starting with the first player, each player choose if they want to place a card from their hand to their mana zone
+
+        Phase 2 - Noon:
+            activate any card with an "at noon" trigger
+
+        Phase 3 - Afternoon:
+            starting with the first player, players take turns in this phase, during which they each play one card at a time
+            (1 turn = 1 card)
+            Turn structure:
+                1. take as many Quick actions as you want
+                2. play a card or pass
+
+        Phase 4 - Dusk:
+            compare statistics of all biomes if at least one stat is higher than the opponent, the player advance in expedition
+
+        Phase 5 - Night:
+            Rest: send all characters in your expeditions to your reserve, if they have "fleeting", discard them instead
+            cleanup: if you have 3 or more cards in your Reserve, you must discard down to 2. do the same for your landmarks 
+    """
 
     ### GAME STATES
     waiting_for_players = State(initial=True)   # we are waiting for players
     initialized = State()   # game is initialized
     morning = State()
     noon = State()
-    afternoon = State(final=True)
+    afternoon = State()
+    dusk = State()
+    night = State()
+    # end_game = State(final=True)
 
     ### GAME TRANSITIONS
-    start = initialized.from_(waiting_for_players, cond='two_or_4_Players') | waiting_for_players.from_(waiting_for_players, unless='cond_two_or_4_Players')
-    to_noon = initialized.to(noon, cond='all_players_3_mana')
-    to_afternoon = noon.to(afternoon, cond='all_noon_effets_done')
+    start = initialized.from_(waiting_for_players, cond='two_or_4_Players') | waiting_for_players.from_(waiting_for_players, unless='two_or_4_Players')
+    to_noon = initialized.to(noon, cond='all_players_3_mana') | initialized.from_(initialized, unless='all_players_3_mana')| morning.to(noon)
+    to_afternoon = noon.to(afternoon, cond='all_noon_effects_done')
+    to_dusk = afternoon.to(dusk)
+    to_night = dusk.to(night)
+    to_morning = night.to(morning)
 
     def __init__(self):
-        self.GAMES_FOLDER  = r'C:\Users\jbonnet\Documents\python\projects\_small_ones\_allin\TCG_Altered_sm\games'
+        self.GAMES_FOLDER  = r'games'
         
         self.id: str
         self.players = []
@@ -54,28 +85,37 @@ class Altered_game_engine(StateMachine):
         self.save_game()
         return self.players[player.id-1]
 
-    def get_available_actions(self, player):
-        """ returns a message and a list of all available actions for the player """
+    def get_player(self, player):
+        """ returns player object """
+        return self.players[player.id-1]
+
+    def play_actions(self, player):
+        # [{'action': 'move_card', 'card': 'c81', 'from': 'hand', 'to': 'mana_pile'},
+        # {'action': 'move_card', 'card': 'c72', 'from': 'hand', 'to': 'mana_pile'},
+        # {'action': 'move_card', 'card': 'c21', 'from': 'hand', 'to': 'mana_pile'}]
         
-        if self.current_state.value == 'initialized':
-            # check if all players have 3 mana
-            if not self.all_players_3_mana():
-                actions_list = self.gather_available_actions(self.players[player.id-1])
-                self.players[player.id-1].available_actions = actions_list[:-1] # remove pass action here
-                self.players[player.id-1].message = "Discard 3 cards to mana and/or wait for other players to do so"
-            else: # if so go to Day1 Noon
-                self.to_noon()
+        for action in player.actions:
+            # 1. play the card
+            if action['action'] == 'move_card':
+                # 1. remove card from source
+                source = getattr(player, action['from'])
+                # check if card really is in source
+                if action['card'] not in source:
+                    player.message = f"Error: Card {action['card']} not in {action['from']}"
+                source.remove(action["card"])
+                setattr(player, action['from'], source)     # update player object
+
+                # 2. add card to destination
+                destination = getattr(player, action['to'])
+                destination.append(action['card'])
+                setattr(player, action['to'], destination)  # update player object
         
-        if self.current_state.value == 'noon':
-            if not self.all_noon_effects_done():
-                effect_lst = self.gather_at_noon_effects(self.players[player.id-1])
-                self.players[player.id-1].effects_available = effect_lst
-                self.players[player.id-1].message = "Play noon effect(s) or pass and/or wait for other players to do so"
-        
+        self.players[player.id-1] = player
+        self.save_game()
         return self.players[player.id-1]
 
     # region state machine actions in states #############################################
-    def on_enter_initialized(self):
+    def on_exit_waiting_for_players(self):
         # 0. define first player
         self.first_player = random.randint(0, self.n_players - 1)
         # self.first_player = self.players[random.randint(0, self.n_players - 1)]
@@ -89,12 +129,16 @@ class Altered_game_engine(StateMachine):
             player.hand[:] = player.deck[:6]
             del player.deck[:6]
 
+        # 3. set message for each player
+        for player in self.players:
+            player.message = "Discard 3 cards to mana and/or wait for other players to do so"
+        
     def on_enter_noon(self):
         # from 1st player to others check if "at noon" effect has to be applied
         for i in range(self.n_players):
             effect_lst = self.gather_at_noon_effects(self.players[((self.first_player-1) + i) % self.n_players])
             self.players[((self.first_player-1) + i) % self.n_players].effects_available = effect_lst
-            
+    
     # endregion state machine actions in states
 
     # region state machine conditions #####################################################
@@ -126,7 +170,7 @@ class Altered_game_engine(StateMachine):
         keys_to_remove = [
             'model', 'state_field', 'start_value', 'allow_event_without_transition',
             '_external_queue', '_callbacks_registry', '_states_for_instance',
-            '_listeners', '_engine'
+            '_listeners', '_engine', '_callbacks'
         ]
         for key in keys_to_remove:
             if key in game_dict_copy:

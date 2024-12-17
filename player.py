@@ -7,7 +7,7 @@ from typing import Optional
 class Player(BaseModel):
     """ Pydantic Model for FASTAPI
      &
-        requests functions wrapper """
+        requests (to the API) functions wrapper """
     
     name: str = Field(max_length=12)
     deck: list
@@ -103,7 +103,6 @@ class Player(BaseModel):
         self.actions = actions_lst
 
         return actions_lst
-
 
     # endregion
 

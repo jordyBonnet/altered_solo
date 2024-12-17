@@ -32,22 +32,18 @@ def create_game(player: Player):
 def start_game(player: Player):
     game = get_game_engine(player.game_id)    # retrieve the game_engine running for this player game
     game.start()
-    if game.current_state.value == 'initialized':
-        return {"Success": True, "message": "game 'initialized', then do a get_available_actions"}
-    elif game.current_state.value == 'waiting_for_players':
-        return {"Success": False, "message": "waiting for the right number of players (2 or 4)"}
+    return {"Success": True}
 
 @app.post("/game/play_actions")
 def play_actions(player: Player):
-    player_data = game_engine.play_actions(player)
-    if type(player_data) == dict:   # error
-        return player_data
+    game = get_game_engine(player.game_id)  # retrieve the game_engine running for this player game
+    player_data = game.play_actions(player)
     return {"Success": True, "data": player_data}
 
-@app.get("/game/get_available_actions")
-def get_available_actions(player: Player):
+@app.get("/game/get_player")
+def get_player(player: Player):
     game = get_game_engine(player.game_id)    # retrieve the game_engine running for this player game
-    player_data = game.get_available_actions(player)
+    player_data = game.get_player(player)
     if type(player_data) == dict:   # error
         return player_data
     return {"Success": True, "data": player_data}
